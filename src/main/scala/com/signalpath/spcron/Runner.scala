@@ -7,6 +7,14 @@ import fs2.{Stream => fs2Stream}
 
 import scala.concurrent.ExecutionContext
 
+/**
+ * The definition of a job to be run on a schedule.
+ *
+ * @param cronExpression A cron4s compatible cron expression.
+ * @param name A unique name for the job. This will be part of the lock name.
+ * @param job The work to be done.
+ * @param ttl How long the lock should be held for the job execution.
+ */
 case class JobDefinition(
   cronExpression: String,
   name: String,
@@ -16,17 +24,26 @@ case class JobDefinition(
   def cron: cron4s.CronExpr = Cron.unsafeParse(cronExpression)
 }
 
+/**
+ * The job runner. Create this and call the start method to start jobs executing.
+ *
+ * @param lock An implemented LockingWorker.
+ */
 class Runner(lock: LockingWorker) {
 
   val runnerId = java.util.UUID.randomUUID().toString
 
+  /**
+   * Starts a collection of jobs which are executed on their cron schedules.
+   *
+   * @param jobs Jobs to be executed.
+   */
   def start(jobs: Seq[JobDefinition]): Unit = {
     implicit val timer: Timer[IO] = IO.timer(ExecutionContext.global)
     val streams = jobs.map { job =>
       awakeEveryCron[IO](job.cron) >> worker(job.job, job.name, job.ttl)
     }
     streams
-      //.dropRight(1)
       .map(j => j.compile.drain.unsafeRunAsync((cb: Either[Throwable, Unit]) => Unit))
     ()
   }

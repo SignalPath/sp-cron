@@ -12,3 +12,7 @@ libraryDependencies ++= Seq(
   "org.scalamock" %% "scalamock" % "4.4.0" % Test,
   "org.scalatest" %% "scalatest" % "3.1.0" % Test
 )
+
+bintrayOrganization := Some("signalpath")
+bintrayRepository := "scala"
+licenses += ("MIT", url("http://opensource.org/licenses/MIT"))

@@ -7,6 +7,12 @@ from running on multiple instances at the same time.
 
 ## Usage
 
+Add `https://dl.bintray.com/signalpath/scala` to your list of
+maven resolvers and then add the following to your build.sbt. 
+```
+libraryDependencies += "com.signalpath" %% "sp-cron" % "1.0"
+```
+
 Running cron jobs is as simple as creating a Runner and passing
 it JobDefinitions. The following example defines a single job
 which prints the time every minute. The example assumes that
@@ -18,14 +24,14 @@ val lock = new RedisLockingWorker(redis)
 val runner = new Runner(lock)
 val jobs = Seq(
     JobDefinition(
-        "0 * * ? * * ",
-        "test2",
-        IO({ println(LocalDateTime.now()) }),
-        45
+        cronExpression = "0 * * ? * * ",
+        name = "clock",
+        job = IO({ println(LocalDateTime.now()) }),
+        ttl = 45
     )
 )
 runner.start(jobs)
-```                                                     
+```                                                    
 
 Likely, a job will have side effects involving futures. Because
 the JobDescription expects an `IO[Unit]` the future will either
