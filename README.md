@@ -1,5 +1,10 @@
 # SP-Cron
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+![Build](https://github.com/SignalPath/sp-cron/workflows/Scala%20CI/badge.svg)
+[![Artifact](https://img.shields.io/badge/artifact-sp--cron-green)](https://bintray.com/signalpath/scala/sp-cron)
+![Version](https://img.shields.io/badge/version-1.0-blue)
+
 A small library to define functions that run on a cron schedule
 using [fs2-cron](https://github.com/fthomas/fs2-cron). Using 
 [redis](redis.io) to create a lock per job preventing the job
@@ -82,3 +87,7 @@ class RedisLockingWorker(redis: RedisClient) extends LockingWorker {
     implicit def seqStrToSeqBuf(strings: Seq[String]): Seq[Buf] = strings.map(strToBuf)
 }
 ```
+
+## Contributing
+
+Before contributing, please read the contributors guide for useful information.
