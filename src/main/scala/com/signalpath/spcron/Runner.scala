@@ -49,7 +49,7 @@ class Runner(lock: LockingWorker) {
   }
 
   def worker(task: IO[Unit], name: String, ttl: Long): fs2.Stream[IO, fs2.INothing] = {
-    val async: IO[Unit] = Async[IO].async { cb =>
+    val async: IO[Unit] = Async[IO].async_ { cb: (Either[Throwable, Unit] => Unit) =>
       getLock(name, ttl).flatMap { isOwner =>
         if(isOwner) task
         else IO(())
