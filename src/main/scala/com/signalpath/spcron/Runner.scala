@@ -1,11 +1,10 @@
 package com.signalpath.spcron
 
-import cats.effect.{Async, IO, Timer}
+import cats.effect.{Async, IO}
 import cron4s.Cron
-import eu.timepit.fs2cron.awakeEveryCron
+import eu.timepit.fs2cron.cron4s.Cron4sScheduler
 import fs2.{Stream => fs2Stream}
-
-import scala.concurrent.ExecutionContext
+import cats.effect.unsafe.implicits.global
 
 /**
  * The definition of a job to be run on a schedule.
@@ -31,7 +30,7 @@ case class JobDefinition(
  */
 class Runner(lock: LockingWorker) {
 
-  val runnerId = java.util.UUID.randomUUID().toString
+  val runnerId: String = java.util.UUID.randomUUID().toString
 
   /**
    * Starts a collection of jobs which are executed on their cron schedules.
@@ -39,9 +38,9 @@ class Runner(lock: LockingWorker) {
    * @param jobs Jobs to be executed.
    */
   def start(jobs: Seq[JobDefinition]): Unit = {
-    implicit val timer: Timer[IO] = IO.timer(ExecutionContext.global)
+    val cronScheduler = Cron4sScheduler.systemDefault[IO]
     val streams = jobs.map { job =>
-      awakeEveryCron[IO](job.cron) >> worker(job.job, job.name, job.ttl)
+      cronScheduler.awakeEvery(job.cron) >> worker(job.job, job.name, job.ttl)
     }
     streams
       .map(j => j.compile.drain.unsafeRunAsync((cb: Either[Throwable, Unit]) => Unit))
