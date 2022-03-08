@@ -1,12 +1,12 @@
 package com.signalpath.spcron
 
-import cats.effect.{IO, Timer}
-import eu.timepit.fs2cron.awakeEveryCron
+import cats.effect.IO
+import cats.effect.unsafe.implicits.global
+import eu.timepit.fs2cron.cron4s.Cron4sScheduler
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 
 class RunnerTest extends AnyFunSpec with MockFactory with Matchers {
@@ -47,7 +47,6 @@ class RunnerTest extends AnyFunSpec with MockFactory with Matchers {
   }
 
   describe("worker") {
-    implicit val timer: Timer[IO] = IO.timer(ExecutionContext.global)
     describe("when it secures the lock") {
       it("should run the job") {
         var wasRun = false
@@ -62,7 +61,8 @@ class RunnerTest extends AnyFunSpec with MockFactory with Matchers {
         (mockLock.expire _).expects(job.name, job.ttl).returning(IO(true)).atLeastOnce()
         val runner = new Runner(mockLock)
         val worker = runner.worker(job.job, job.name, job.ttl)
-        (awakeEveryCron[IO](job.cron) >> worker).compile.drain.unsafeRunTimed(Duration(1, "second"))
+        val cronScheduler = Cron4sScheduler.systemDefault[IO]
+        (cronScheduler.awakeEvery(job.cron) >> worker).compile.drain.unsafeRunTimed(Duration(1, "second"))
         wasRun should equal(true)
       }
     }
@@ -81,7 +81,8 @@ class RunnerTest extends AnyFunSpec with MockFactory with Matchers {
         (mockLock.eval _).expects(*, job.name, job.ttl).returning(IO(true)).atLeastOnce()
         val runner = new Runner(mockLock)
         val worker = runner.worker(job.job, job.name, job.ttl)
-        (awakeEveryCron[IO](job.cron) >> worker).compile.drain.unsafeRunTimed(Duration(1, "second"))
+        val cronScheduler = Cron4sScheduler.systemDefault[IO]
+        (cronScheduler.awakeEvery(job.cron) >> worker).compile.drain.unsafeRunTimed(Duration(1, "second"))
         wasRun should equal(false)
       }
     }

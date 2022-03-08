@@ -1,10 +1,11 @@
 package com.signalpath.spcron
 
+import cats.effect.implicits._
+import cats.effect.unsafe.implicits.global
 import cats.effect.{Async, IO}
 import cron4s.Cron
 import eu.timepit.fs2cron.cron4s.Cron4sScheduler
 import fs2.{Stream => fs2Stream}
-import cats.effect.unsafe.implicits.global
 
 /**
  * The definition of a job to be run on a schedule.
@@ -43,7 +44,7 @@ class Runner(lock: LockingWorker) {
       cronScheduler.awakeEvery(job.cron) >> worker(job.job, job.name, job.ttl)
     }
     streams
-      .map(j => j.compile.drain.unsafeRunAsync((cb: Either[Throwable, Unit]) => Unit))
+      .map(j => j.compile.drain.unsafeRunAsync((cb: Either[Throwable, Unit]) => ()))
     ()
   }
 
