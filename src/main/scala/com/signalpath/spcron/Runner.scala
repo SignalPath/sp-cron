@@ -1,11 +1,12 @@
 package com.signalpath.spcron
 
-import cats.effect.implicits._
-import cats.effect.unsafe.implicits.global
-import cats.effect.{Async, IO}
+import cats.effect.{Async, ContextShift, IO, Timer}
 import cron4s.Cron
+import eu.timepit.fs2cron.ScheduledStreams
 import eu.timepit.fs2cron.cron4s.Cron4sScheduler
 import fs2.{Stream => fs2Stream}
+
+import scala.concurrent.ExecutionContext
 
 /**
  * The definition of a job to be run on a schedule.
@@ -39,9 +40,11 @@ class Runner(lock: LockingWorker) {
    * @param jobs Jobs to be executed.
    */
   def start(jobs: Seq[JobDefinition]): Unit = {
-    val cronScheduler = Cron4sScheduler.systemDefault[IO]
+    implicit val timer: Timer[IO] = IO.timer(ExecutionContext.global)
+    implicit val ctxShift: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
+    val schedStreams = new ScheduledStreams(Cron4sScheduler.systemDefault[IO])
     val streams = jobs.map { job =>
-      cronScheduler.awakeEvery(job.cron) >> worker(job.job, job.name, job.ttl)
+      schedStreams.awakeEvery(job.cron) >> worker(job.job, job.name, job.ttl)
     }
     streams
       .map(j => j.compile.drain.unsafeRunAsync((cb: Either[Throwable, Unit]) => ()))
@@ -49,7 +52,7 @@ class Runner(lock: LockingWorker) {
   }
 
   def worker(task: IO[Unit], name: String, ttl: Long): fs2.Stream[IO, fs2.INothing] = {
-    val async: IO[Unit] = Async[IO].async_ { cb: (Either[Throwable, Unit] => Unit) =>
+    val async: IO[Unit] = Async[IO].async { cb: (Either[Throwable, Unit] => Unit) =>
       getLock(name, ttl).flatMap { isOwner =>
         if(isOwner) task
         else IO(())
