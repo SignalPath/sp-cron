@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
   "com.github.alonsodomin.cron4s" %% "cron4s-core" % "0.6.1",
   "eu.timepit" %% "fs2-cron-cron4s" % "0.5.0",
   "org.typelevel" %% "cats-core" % "2.6.1",
-  "org.scalatest" %% "scalatest" % "3.2.9" % Test,
+  "org.scalatest" %% "scalatest" % "3.1.2" % Test,
   "org.scalamock" %% "scalamock" % "5.2.0" % Test,
 )
 
