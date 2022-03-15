@@ -48,6 +48,8 @@ class RunnerTest extends AnyFunSpec with MockFactory with Matchers {
   }
 
   describe("worker") {
+    implicit val timer: Timer[IO] = IO.timer(ExecutionContext.global)
+    implicit val ctxShift: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
     describe("when it secures the lock") {
       it("should run the job") {
         var wasRun = false
@@ -62,8 +64,6 @@ class RunnerTest extends AnyFunSpec with MockFactory with Matchers {
         (mockLock.expire _).expects(job.name, job.ttl).returning(IO(true)).atLeastOnce()
         val runner = new Runner(mockLock)
         val worker = runner.worker(job.job, job.name, job.ttl)
-        implicit val timer: Timer[IO] = IO.timer(ExecutionContext.global)
-        implicit val ctxShift: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
         val schedStreams = new ScheduledStreams(Cron4sScheduler.systemDefault[IO])
         (schedStreams.awakeEvery(job.cron) >> worker).compile.drain.unsafeRunTimed(Duration(1, "second"))
         wasRun should equal(true)
@@ -84,8 +84,6 @@ class RunnerTest extends AnyFunSpec with MockFactory with Matchers {
         (mockLock.eval _).expects(*, job.name, job.ttl).returning(IO(true)).atLeastOnce()
         val runner = new Runner(mockLock)
         val worker = runner.worker(job.job, job.name, job.ttl)
-        implicit val timer: Timer[IO] = IO.timer(ExecutionContext.global)
-        implicit val ctxShift: ContextShift[IO] = IO.contextShift(ExecutionContext.global)
         val schedStreams = new ScheduledStreams(Cron4sScheduler.systemDefault[IO])
         (schedStreams.awakeEvery(job.cron) >> worker).compile.drain.unsafeRunTimed(Duration(1, "second"))
         wasRun should equal(false)
