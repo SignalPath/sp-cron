@@ -1,6 +1,6 @@
 name := "sp-cron"
 organization := "com.signalpath"
-version := "1.2"
+version := "2.0"
 
 lazy val versions = new {
   val scala212 = "2.12.20"
