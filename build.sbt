@@ -3,20 +3,20 @@ organization := "com.signalpath"
 version := "1.2"
 
 lazy val versions = new {
-  val scala212 = "2.12.11"
-  val scala213 = "2.13.10"
+  val scala212 = "2.12.20"
+  val scala213 = "2.13.15"
   val supportedScalaVersions = List(scala212, scala213)
 }
 
 crossScalaVersions := versions.supportedScalaVersions
 
 libraryDependencies ++= Seq(
-  "co.fs2" %% "fs2-core" % "2.5.6",
-  "com.github.alonsodomin.cron4s" %% "cron4s-core" % "0.6.1",
-  "eu.timepit" %% "fs2-cron-cron4s" % "0.5.0",
-  "org.typelevel" %% "cats-core" % "2.6.1",
-  "org.scalatest" %% "scalatest" % "3.1.2" % Test,
-  "org.scalamock" %% "scalamock" % "5.2.0" % Test,
+  "co.fs2" %% "fs2-core" % "2.5.10",
+  "com.github.alonsodomin.cron4s" %% "cron4s-core" % "0.6.1", // tied to fs2-cron-cron4s below
+  "eu.timepit" %% "fs2-cron-cron4s" % "0.5.0", // code needs to be reworked if we want to up these
+  "org.typelevel" %% "cats-core" % "2.13.0",
+  "org.scalatest" %% "scalatest" % "3.2.19" % Test,
+  "org.scalamock" %% "scalamock" % "6.1.1" % Test,
 )
 
 bintrayOrganization := Some("signalpath")
