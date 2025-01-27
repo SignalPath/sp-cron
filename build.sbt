@@ -11,9 +11,9 @@ lazy val versions = new {
 crossScalaVersions := versions.supportedScalaVersions
 
 libraryDependencies ++= Seq(
-  "co.fs2" %% "fs2-core" % "3.11.0",
-  "com.github.alonsodomin.cron4s" %% "cron4s-core" % "0.7.0", // tied to fs2-cron-cron4s below
-  "eu.timepit" %% "fs2-cron-cron4s" % "0.9.0",
+  "co.fs2" %% "fs2-core" % "2.5.10",
+  "com.github.alonsodomin.cron4s" %% "cron4s-core" % "0.6.1", // tied to fs2-cron-cron4s below
+  "eu.timepit" %% "fs2-cron-cron4s" % "0.5.0", // code needs to be reworked if we want to up these
   "org.typelevel" %% "cats-core" % "2.13.0",
   "org.scalatest" %% "scalatest" % "3.2.19" % Test,
   "org.scalamock" %% "scalamock" % "6.1.1" % Test,
